@@ -14,24 +14,26 @@
     <html>
       <head>
         <title></title>
-        <style>.green { background-color: lightgreen }
-        .pink { background-color: pink }
-        .blue { background-color: lightblue }</style>
+        <style>
+          .gray { background-color: gray }
+          .orange { background-color: orange }
+          .green { background-color: lightgreen }
+          .pink { background-color: pink }
+          .blue { background-color: lightblue }
+        </style>
       </head>
       <body>
         <h1>Duplicate Species</h1>
         <h2>Key</h2>
         <table>
+          <tr><td class="gray" style="width: 20px">&#160;</td><td>Column value is NULL</td></tr>
+          <tr><td class="orange" style="width: 20px">&#160;</td><td>Column value need whitespace normalization</td></tr>
           <tr><td class="green" style="width: 20px">&#160;</td><td>Column value matches all other rows in the same group</td></tr>
           <tr><td class="blue" style="width: 20px">&#160;</td><td>Column value matches at least one other row in the same group</td></tr>
           <tr><td class="pink">&#160;</td><td>Column value differs from that of all other rows in the same group</td></tr>
         </table>
         <table>
-          <thead>
-            <xsl:for-each select="$columns">
-              <th><xsl:value-of select="local-name(.)"/></th>
-            </xsl:for-each>
-          </thead>
+          <xsl:call-template name="table_heading"/>
           <tbody>
             <xsl:apply-templates select="RECORD[position() &lt;= $lastrow]"/>
           </tbody>
@@ -45,14 +47,22 @@
     <tr>
       <td><xsl:value-of select="id"/></td>
       <xsl:for-each select="$columns[position() > 1]">
+        <xsl:variable name="column_value" select="$record/*[local-name(.) = local-name(current())]"/>
+        <xsl:variable name="column_values_of_matching_rows" select="$matches/*[local-name(.) = local-name(current())]"/>
         <td>
           <xsl:attribute name="class">
-            <xsl:if test="current()[@compare &gt; 0] and $record/*[local-name(.) = local-name(current())]">
+            <xsl:if test="current()[@compare &gt; 0]">
               <xsl:choose>
-                <xsl:when test="not($record/*[local-name(.) = local-name(current())] != $matches/*[local-name(.) = local-name(current())])">
+                <xsl:when test="count($column_value) = 0"><!-- value is NULL (no column in XML) -->
+                  gray
+                </xsl:when>
+                <xsl:when test="$column_value != normalize-space($column_value)"><!-- space in value is not normalized -->
+                  orange
+                </xsl:when>
+                <xsl:when test="not($column_value != $column_values_of_matching_rows) and count($matches) = count($column_values_of_matching_rows)"><!-- every other row in the group has the same (non NULL) column value -->
                   green
                 </xsl:when>
-                <xsl:when test="$record/*[local-name(.) = local-name(current())] = $matches/*[local-name(.) = local-name(current())]">
+                <xsl:when test="$column_value = $column_values_of_matching_rows"><!-- some other row in the same group has the same column value -->
                   blue
                 </xsl:when>
                 <xsl:otherwise>
@@ -67,6 +77,20 @@
     </tr>
     <xsl:if test="not(./following-sibling::RECORD = $matches)">
       <tr><td style="background-color: blue" colspan="{count($columns)}">   </td></tr>
+      <xsl:if test="count(./preceding-sibling::RECORD[scientificname != preceding-sibling::RECORD/scientificname] ) mod 5 = 0"><!-- This test isn't quite right but it's good enough for now. -->
+        <xsl:call-template name="table_heading"/>
+        <tr><td style="background-color: blue" colspan="{count($columns)}">   </td></tr>
+      </xsl:if>
     </xsl:if>
   </xsl:template>
+
+
+  <xsl:template name="table_heading">
+    <thead>
+      <xsl:for-each select="$columns">
+        <th><xsl:value-of select="local-name(.)"/></th>
+      </xsl:for-each>
+    </thead>
+  </xsl:template>
+  
 </xsl:stylesheet>
