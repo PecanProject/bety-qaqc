@@ -15,6 +15,7 @@
       <head>
         <title></title>
         <style>
+          .red { background-color: red }
           .gray { background-color: gray }
           .orange { background-color: orange }
           .green { background-color: lightgreen }
@@ -26,6 +27,7 @@
         <h1>Duplicate Species</h1>
         <h2>Key</h2>
         <table>
+          <tr><td class="red" style="width: 20px">&#160;</td><td>Row can be removed: no references</td></tr>
           <tr><td class="gray" style="width: 20px">&#160;</td><td>Column value is NULL</td></tr>
           <tr><td class="orange" style="width: 20px">&#160;</td><td>Column value need whitespace normalization</td></tr>
           <tr><td class="green" style="width: 20px">&#160;</td><td>Column value matches all other rows in the same group</td></tr>
@@ -45,7 +47,14 @@
     <xsl:variable name="record" select="."/>
     <xsl:variable name="matches" select="../RECORD[scientificname = current()/scientificname and generate-id(.) != generate-id(current())]"/>
     <tr>
-      <td><xsl:value-of select="id"/></td>
+      <td>
+        <xsl:attribute name="class">
+          <xsl:if test="./linked_yields = '' and ./linked_traits = '' and ./linked_cultivars = '' and not(./linked_pfts)">
+            red
+          </xsl:if>
+        </xsl:attribute>
+        <xsl:value-of select="id"/>
+      </td>
       <xsl:for-each select="$columns[position() > 1]">
         <xsl:variable name="column_value" select="$record/*[local-name(.) = local-name(current())]"/>
         <xsl:variable name="column_values_of_matching_rows" select="$matches/*[local-name(.) = local-name(current())]"/>
