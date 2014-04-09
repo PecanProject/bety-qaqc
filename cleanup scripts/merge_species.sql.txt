@@ -1,0 +1,78 @@
+## This script combines duplicate species
+## USER must identify which species to keep
+USE ebi_production;
+
+SET @NEW = 1080,
+ @OLD = 2882;
+
+UPDATE traits
+SET specie_id = @NEW
+WHERE
+	specie_id = @OLD;
+
+UPDATE yields
+SET specie_id = @NEW
+WHERE
+	specie_id = @OLD;
+
+UPDATE cultivars
+SET specie_id = @NEW
+WHERE
+	specie_id = @OLD;
+
+DROP TABLE
+IF EXISTS ps;
+
+CREATE TEMPORARY TABLE ps AS SELECT
+	pft_id,
+	specie_id
+FROM
+	pfts_species
+WHERE
+	specie_id IN (@NEW, @OLD);
+
+UPDATE pfts_species
+SET specie_id = @NEW
+WHERE
+	specie_id = @OLD
+AND pft_id NOT IN (
+	SELECT
+		pft_id
+	FROM
+		ps
+	WHERE
+		specie_id = @NEW
+);
+
+#select * from pfts_species where specie_id in (@OLD, @NEW) order by pft_id, specie_id;
+#select * from ps where pft_id not in (select pft_id from pfts_species where specie_id = @NEW);
+DELETE
+FROM
+	pfts_species
+WHERE
+	specie_id = @OLD;
+
+DELETE
+FROM
+	species
+WHERE
+	id = @OLD;
+
+## TEST the following table contains pfts that are no longer represented !
+SELECT
+	count(*) AS NumberOfMissingPFTS
+FROM
+	pfts_species
+WHERE
+	specie_id = @NEW
+AND pft_id NOT IN (SELECT pft_id FROM ps);
+
+SELECT
+	count(*) AS UnreplacedOldPFTS
+FROM
+	pfts_species
+WHERE
+	specie_id = @OLD;
+
+DROP TABLE
+IF EXISTS ps;
