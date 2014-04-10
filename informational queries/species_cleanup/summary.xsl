@@ -49,7 +49,9 @@
     <tr>
       <td>
         <xsl:attribute name="class">
-          <xsl:if test="./linked_yields = '' and ./linked_traits = '' and ./linked_cultivars = '' and not(./linked_pfts)">
+          <xsl:if test="./linked_yields = '' and ./linked_traits = '' and ./linked_cultivars = '' and (./linked_pfts = '' or ./linked_pfts = $matches/linked_pfts) and count($matches) = 1">
+            <xsl:message>DELETE FROM pfts_species WHERE specie_id = <xsl:value-of select="./id"/>;</xsl:message>
+            <xsl:message>DELETE FROM species WHERE id = <xsl:value-of select="./id"/>;</xsl:message>
             red
           </xsl:if>
         </xsl:attribute>
