@@ -1,0 +1,3 @@
+update traits set citation_id = $NEW where citation_id = $OLD;
+update citations_treatments set citation_id = $NEW where citation_id = $OLD;
+delete from citations_sites where citation_id = $OLD;
