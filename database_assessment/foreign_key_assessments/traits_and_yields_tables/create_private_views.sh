@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-# Modify as needed:
-DATABASE=ebi_production_copy
+. connection_variables
+
+PSQL="psql -h $HOST -U $USER $DATABASE"
 
 
 
-psql $DATABASE < create_unrestricted_traits_and_yields_view.sql
+$PSQL < create_unrestricted_traits_and_yields_view.sql
 
