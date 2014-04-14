@@ -1,5 +1,5 @@
 SELECT
-	citation_id AS "Citation id", author, year, count(*), array_agg(distinct cultivar_id) AS "List of cultivar ids", array_agg(distinct login) AS "List of user logins"
+	citation_id AS "Citation id", author, citation_year AS year, count(*), array_agg(distinct cultivar_id) AS "List of cultivar ids", array_agg(distinct login) AS "List of user logins"
 FROM
 	traits_and_yields_view_private
 WHERE
@@ -14,7 +14,7 @@ AND NOT EXISTS (
 		ID = cultivar_id
 )
 GROUP BY
-    citation_id, author, year
+    citation_id, author, citation_year
 ORDER BY
     author,
 	year;
