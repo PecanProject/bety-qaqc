@@ -1,4 +1,8 @@
-This is a repository for code that will be used to check BETYdb data and define constraints.
+Repository for code used to check and constrain BETYdb
+-------------------------------------------------------
+
+
+This repository contains code that will be used to check BETYdb data and define constraints.
 
 If you modify a text file, check it in to git first (or if it is
 already checked in, commit any uncommitted changes).
