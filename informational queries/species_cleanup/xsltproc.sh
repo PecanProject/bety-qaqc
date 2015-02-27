@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # draft: psql -At ebi_production_copy < duplicate_species_query.sql > duplicate_species_local.xml
+psql -At -U bety -h ebi-forecast.igb.illinois.edu ebi_production < duplicate_species_query.sql > duplicate_species_local.xml
 
 tmp=/tmp/out.$RANDOM.html
 
