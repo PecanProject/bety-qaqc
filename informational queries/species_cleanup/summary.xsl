@@ -10,7 +10,7 @@
     <xsl:apply-templates/>
   </xsl:template>
   
-  <xsl:template match="RECORDS">
+  <xsl:template match="table">
     <html>
       <head>
         <title></title>
@@ -37,15 +37,15 @@
         <table>
           <xsl:call-template name="table_heading"/>
           <tbody>
-            <xsl:apply-templates select="RECORD[position() &lt;= $lastrow]"/>
+            <xsl:apply-templates select="row[position() &lt;= $lastrow]"/>
           </tbody>
         </table>
       </body>
     </html>
   </xsl:template>
-  <xsl:template match="RECORD">
+  <xsl:template match="row">
     <xsl:variable name="record" select="."/>
-    <xsl:variable name="matches" select="../RECORD[scientificname = current()/scientificname and generate-id(.) != generate-id(current())]"/>
+    <xsl:variable name="matches" select="../row[scientificname = current()/scientificname and generate-id(.) != generate-id(current())]"/>
     <tr>
       <td>
         <xsl:attribute name="class">
@@ -86,9 +86,9 @@
         </td>
       </xsl:for-each>
     </tr>
-    <xsl:if test="not(./following-sibling::RECORD = $matches)">
+    <xsl:if test="not(./following-sibling::row = $matches)">
       <tr><td style="background-color: blue" colspan="{count($columns)}">   </td></tr>
-      <xsl:if test="count(./preceding-sibling::RECORD[scientificname != preceding-sibling::RECORD/scientificname] ) mod 5 = 0"><!-- This test isn't quite right but it's good enough for now. -->
+      <xsl:if test="count(./preceding-sibling::row[scientificname != preceding-sibling::row/scientificname] ) mod 5 = 0"><!-- This test isn't quite right but it's good enough for now. -->
         <xsl:call-template name="table_heading"/>
         <tr><td style="background-color: blue" colspan="{count($columns)}">   </td></tr>
       </xsl:if>
