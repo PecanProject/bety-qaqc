@@ -16,8 +16,9 @@
         <title></title>
         <style>
           .red { background-color: red }
-          .gray { background-color: gray }
           .orange { background-color: orange }
+          .gray { background-color: gray }
+          .violet { background-color: violet }
           .green { background-color: lightgreen }
           .pink { background-color: pink }
           .blue { background-color: lightblue }
@@ -27,9 +28,10 @@
         <h1>Duplicate Species</h1>
         <h2>Key</h2>
         <table>
-          <tr><td class="red" style="width: 20px">&#160;</td><td>Row can be removed: no references</td></tr>
+          <tr><td class="red" style="width: 20px">&#160;</td><td>Row can be removed: no unique references</td></tr>
+          <tr><td class="orange" style="width: 20px">&#160;</td><td>Row can be removed after copying some information</td></tr>
           <tr><td class="gray" style="width: 20px">&#160;</td><td>Column value is NULL</td></tr>
-          <tr><td class="orange" style="width: 20px">&#160;</td><td>Column value need whitespace normalization</td></tr>
+          <tr><td class="violet" style="width: 20px">&#160;</td><td>Column value need whitespace normalization</td></tr>
           <tr><td class="green" style="width: 20px">&#160;</td><td>Column value matches all other rows in the same group</td></tr>
           <tr><td class="blue" style="width: 20px">&#160;</td><td>Column value matches at least one other row in the same group</td></tr>
           <tr><td class="pink">&#160;</td><td>Column value differs from that of all other rows in the same group</td></tr>
@@ -43,22 +45,29 @@
       </body>
     </html>
   </xsl:template>
+
+
   <xsl:template match="row">
-    <xsl:variable name="record" select="."/>
-    <xsl:variable name="matches" select="../row[scientificname = current()/scientificname and generate-id(.) != generate-id(current())]"/>
+    <xsl:variable name="record" select="."/><!-- The current "row" element. -->
+    <xsl:variable name="matches" select="../row[scientificname = current()/scientificname and generate-id(.) != generate-id(current())]"/><!-- The set of other "row" elements whose "scientificname" child element has the same value as this one. -->
     <tr>
       <td>
         <xsl:attribute name="class">
-          <xsl:if test="./linked_yields = '' and ./linked_traits = '' and ./linked_cultivars = '' and (./linked_pfts = '' or ./linked_pfts = $matches/linked_pfts) and count($matches) = 1">
-            <xsl:message>DELETE FROM pfts_species WHERE specie_id = <xsl:value-of select="./id"/>;</xsl:message>
-            <xsl:message>DELETE FROM species WHERE id = <xsl:value-of select="./id"/>;</xsl:message>
-            red
-          </xsl:if>
+          <xsl:choose>
+            <xsl:when test="./can_delete = 'true'">
+              <xsl:message>DELETE FROM pfts_species WHERE specie_id = <xsl:value-of select="./id"/>;</xsl:message>
+              <xsl:message>DELETE FROM species WHERE id = <xsl:value-of select="./id"/>;</xsl:message>
+              red
+            </xsl:when>
+            <xsl:when test="./deletion_candidate = 'true'">
+              orange
+            </xsl:when>
+          </xsl:choose>
         </xsl:attribute>
         <xsl:value-of select="id"/>
       </td>
-      <xsl:for-each select="$columns[position() > 1]">
-        <xsl:variable name="column_value" select="$record/*[local-name(.) = local-name(current())]"/>
+      <xsl:for-each select="$columns[position() > 1]"><!-- Iterate through all the columns of the query result from "duplicate_species_query.sql", starting with the column after "id". -->
+        <xsl:variable name="column_value" select="$record/*[local-name(.) = local-name(current())]"/><!-- The value in the current column as a string. -->
         <xsl:variable name="column_values_of_matching_rows" select="$matches/*[local-name(.) = local-name(current())]"/>
         <td>
           <xsl:attribute name="class">
@@ -68,7 +77,7 @@
                   gray
                 </xsl:when>
                 <xsl:when test="$column_value != normalize-space($column_value)"><!-- space in value is not normalized -->
-                  orange
+                  violet
                 </xsl:when>
                 <xsl:when test="not($column_value != $column_values_of_matching_rows) and count($matches) = count($column_values_of_matching_rows)"><!-- every other row in the group has the same (non NULL) column value -->
                   green
