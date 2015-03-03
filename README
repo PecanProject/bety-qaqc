@@ -1,5 +1,12 @@
+Repository for code used to check and constrain BETYdb
+-------------------------------------------------------
+
+This repository contains code that will be used to check BETYdb data and define constraints.
+
 If you modify a text file, check it in to git first (or if it is
 already checked in, commit any uncommitted changes).
 
 If you want to track changes to Word Documents, either use the track
 changes feature or convert to a text file and add to git.
+
+
