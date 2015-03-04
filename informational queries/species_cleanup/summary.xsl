@@ -22,10 +22,10 @@
         <style>
           .red { background-color: red }
           .orange { background-color: orange }
-          .green { background-color: darkgreen }
+          .green { background-color: #19A319 }
           .gray { background-color: gray }
           .violet { background-color: violet }
-          .green { background-color: lightgreen }
+          .lightgreen { background-color: #70E2AA }
           .pink { background-color: pink }
           .blue { background-color: lightblue }
         </style>
@@ -39,7 +39,7 @@
           <tr><td class="green" style="width: 20px">&#160;</td><td>Row can act as group representitive; other rows can be consolidated into this one</td></tr>
           <tr><td class="gray" style="width: 20px">&#160;</td><td>Column value is NULL</td></tr>
           <tr><td class="violet" style="width: 20px">&#160;</td><td>Column value need whitespace normalization</td></tr>
-          <tr><td class="green" style="width: 20px">&#160;</td><td>Column value matches all other rows in the same group</td></tr>
+          <tr><td class="lightgreen" style="width: 20px">&#160;</td><td>Column value matches all other rows in the same group</td></tr>
           <tr><td class="blue" style="width: 20px">&#160;</td><td>Column value matches at least one other row in the same group</td></tr>
           <tr><td class="pink">&#160;</td><td>Column value differs from that of all other rows in the same group</td></tr>
         </table>
@@ -98,7 +98,7 @@
                   violet
                 </xsl:when>
                 <xsl:when test="not($column_value != $column_values_of_matching_rows) and count($matches) = count($column_values_of_matching_rows)"><!-- every other row in the group has the same (non NULL) column value -->
-                  green
+                  lightgreen
                 </xsl:when>
                 <xsl:when test="$column_value = $column_values_of_matching_rows"><!-- some other row in the same group has the same column value -->
                   blue
