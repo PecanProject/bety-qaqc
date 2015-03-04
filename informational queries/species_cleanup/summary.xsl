@@ -3,10 +3,15 @@
   <xsl:output method="html" doctype-public="-//W3C//DTD HTML 4.01//EN"/>
 
   <xsl:param name="lastrow" select="1000"/>
+
+  <xsl:param name="mode" select="delete"/>
   
   <xsl:variable name="columns" select="document('species_columns.xml')//column-names/*"/>
 
   <xsl:template match="/">
+    <xsl:if test="$mode != 'delete' and $mode != 'consolidate'">
+      <xsl:message terminate='yes'>Unrecognized mode.  Mode must be 'delete' or 'consolidate'.</xsl:message>
+    </xsl:if>
     <xsl:apply-templates/>
   </xsl:template>
   
@@ -17,6 +22,7 @@
         <style>
           .red { background-color: red }
           .orange { background-color: orange }
+          .green { background-color: darkgreen }
           .gray { background-color: gray }
           .violet { background-color: violet }
           .green { background-color: lightgreen }
@@ -30,6 +36,7 @@
         <table>
           <tr><td class="red" style="width: 20px">&#160;</td><td>Row can be removed: no unique references</td></tr>
           <tr><td class="orange" style="width: 20px">&#160;</td><td>Row can be removed after copying some information</td></tr>
+          <tr><td class="green" style="width: 20px">&#160;</td><td>Row can act as group representitive; other rows can be consolidated into this one</td></tr>
           <tr><td class="gray" style="width: 20px">&#160;</td><td>Column value is NULL</td></tr>
           <tr><td class="violet" style="width: 20px">&#160;</td><td>Column value need whitespace normalization</td></tr>
           <tr><td class="green" style="width: 20px">&#160;</td><td>Column value matches all other rows in the same group</td></tr>
@@ -54,9 +61,20 @@
       <td>
         <xsl:attribute name="class">
           <xsl:choose>
+            <xsl:when test="$mode = 'consolidate' and ./group_representitive = 'true' and not(preceding-sibling::*[scientificname = current()/scientificname]/group_representitive = 'true')">
+              <xsl:message>SELECT update_references(<xsl:value-of select="./id"/>);</xsl:message>
+              green
+            </xsl:when>
             <xsl:when test="./can_delete = 'true'">
-              <xsl:message>DELETE FROM pfts_species WHERE specie_id = <xsl:value-of select="./id"/>;</xsl:message>
-              <xsl:message>DELETE FROM species WHERE id = <xsl:value-of select="./id"/>;</xsl:message>
+              <xsl:choose>
+                <xsl:when test="$mode = 'delete'">
+                  <xsl:message>DELETE FROM pfts_species WHERE specie_id = <xsl:value-of select="./id"/>;</xsl:message>
+                  <xsl:message>DELETE FROM species WHERE id = <xsl:value-of select="./id"/>;</xsl:message>
+                </xsl:when>
+                <xsl:when test="$mode = 'consolidate'">
+                  <xsl:message terminate='yes'>Don't run in consolidate mode until you have run in deletion mode and run the deletion script.</xsl:message>
+                </xsl:when>
+              </xsl:choose>
               red
             </xsl:when>
             <xsl:when test="./deletion_candidate = 'true'">
