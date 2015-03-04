@@ -67,7 +67,17 @@ SELECT
      (SELECT EXISTS(SELECT 1 FROM species s2 LEFT JOIN pfts_species ps2 ON ps2.specie_id = s2.id
              WHERE s2.scientificname = s.scientificname AND s2.id != s.id GROUP BY s2.id
              HAVING ARRAY_AGG(DISTINCT ps2.pft_id) @> ARRAY_AGG(DISTINCT ps.pft_id)
-                    ))) AS deletion_candidate
+                    ))) AS deletion_candidate,
+
+    NOT EXISTS(SELECT 1 FROM species s2 /*LEFT JOIN pfts_species ps2 ON ps2.specie_id = s2.id*/
+    WHERE s2.scientificname = s.scientificname AND s2.id != s.id
+    AND
+    (s2.genus != '' AND s2.genus != s.genus
+    OR s2.species != '' AND s2.species != s.species
+    OR s2.commonname != '' AND s2.commonname != s.commonname
+    OR s2."AcceptedSymbol" != '' AND s2."AcceptedSymbol" != s."AcceptedSymbol"
+    OR s2.spcd IS NOT NULL AND s2.spcd != s.spcd)
+    ) AS group_representitive
 FROM
 	species s
 LEFT JOIN traits t ON t.specie_id = s.id
