@@ -3,9 +3,10 @@
 usage="
 Usage:
     $(basename $0) -u|-h|-i
-    $(basename $0) [-H host] [-U user] [-d database] [-m (delete|consolidate)]
-    $(basename $0) [-H host] [-U user] [-d database] -q
+    $(basename $0) [-H host] [-U user] [-d database] [-m (delete|consolidate)] [-p]
+    $(basename $0) [-H host] [-U user] [-d database] -q [-p]
     $(basename $0) -s [-m (delete|consolidate)]
+    $(basename $0) -c
 "
 
 help="$usage
@@ -14,10 +15,15 @@ help="$usage
 	-h		print help
 	-i		information manual: show complete information about using this script
 
+	-c		clean up temporary files from previous runs
+
 	-H host		run query on host (default: localhost)
 	-U user		connect to database as user (default: bety)
 	-d database	run query against database (default: bety)
 	-m mode		mode can be either 'delete' (the default) or 'consolidate'
+
+	-p		(preserve) don't bother generating the file sanity_check.sql; if you
+			forget this option, the old copy is backed up
 
 	-q		run the SQL query only; don't generate the HTML file or a deletion or
 	      		consolidation script
@@ -77,7 +83,7 @@ $help
 
     3. Run this script again, this time in consolidation mode:
 
-        $(basename $0) [-H host] [-U user] [-d database] -m consolidate
+        $(basename $0) [-H host] [-U user] [-d database] -m consolidate -p
 
     Again, this will produce an HTML file.  This time, there should be no rows
     sceduled for deletion.  (If this script is run in consolidation mode
@@ -104,11 +110,15 @@ $help
 
     (Again, use the same host and database as in the previous steps.)
 
-    5. Re-run this script.  (The mode used shouldn't matter.)  Groups that
-    remain have two or more rows with differing (non-empty, non-null)
-    information in one or more of the columns "genus", "species", "commonname",
-    "AcceptedSymbol" or "spcd".  These differences will have to be reconciled
-    manually, after which this script can be run again.
+    5. Re-run this script.  (Use the -p option so as not to overwrite
+    sanity_check.sql.  The mode used shouldn't matter.)
+
+        $(basename $0) [-H host] [-U user] [-d database] -p
+
+    Groups that remain have two or more rows with differing (non-empty,
+    non-null) information in one or more of the columns "genus", "species",
+    "commonname", "AcceptedSymbol" or "spcd".  These differences will have to be
+    reconciled manually, after which this script can be run again.
 
     In cases where a row could be deleted once information in one or more of the
     columns "genus", "species", "commonname", "AcceptedSymbol" or "spcd" is
@@ -120,6 +130,21 @@ $help
     On the other hand, if information needs to be reconciled both with regards
     to references and with regards to information contained in the species table
     proper, it may be that none of the rows in a group get marked.
+
+    6. If desired, you can run the commands in sanity_check.sql.  Assuming you
+    used the -p option after step one, the command in this file will verify that
+    a representive of each species group still remains in the database and will
+    show how many duplicates yet remain.  Use the command
+
+        psql -H host -U user -d database < sanity_check.sql
+
+    7. If desired, use the -c option to clean up all the temporary files:
+
+        $(basename $0) -c
+
+    This removes duplicate_species_local.xml, sanity_check.sql (along with any
+    backups), delete_duplicate_species.sql, consolidate_species.sql, and all the
+    files in the /tmp directory of the form out.*.html.
 EOF
 }
 
@@ -129,12 +154,14 @@ user=bety
 mode=delete
 outfile=delete_duplicate_species.sql
 
-while getopts 'sqH:d:U:m:uhi' OPTION
+while getopts 'sqpH:d:U:m:cuhi' OPTION
 do
     case $OPTION in
         s) skip_query=1
             ;;
         q) query_only=1
+            ;;
+        p) keep_old_list=1
             ;;
         H) host="$OPTARG"
            ;;
@@ -143,6 +170,9 @@ do
         U) user="$OPTARG"
            ;;
         m) mode="$OPTARG"
+            ;;
+        c) rm  duplicate_species_local.xml sanity_check.sql* delete_duplicate_species.sql consolidate_species.sql /tmp/out.*.html
+            exit
             ;;
         u) usage
             exit
@@ -172,8 +202,29 @@ if [ ! "$skip_query" ]; then
     echo "querying database ..."
     psql -At -U $user -h $host $database < duplicate_species_query.sql > duplicate_species_local.xml
     echo "done"
-    echo "After inspecting output, you can run 'psql -U $user -h $host $database < delete_duplicate_species.sql' to eliminate duplicate species rows."
 
+    if [ "$mode" = "delete" ]; then
+        echo "After inspecting output, you can run 'psql -U $user -h $host $database < delete_duplicate_species.sql' to eliminate duplicate species rows."
+    elif [ "$mode" = "consolidate" ]; then
+        echo "After inspecting output, you can run 'psql -U $user -h $host $database < consolidate_species.sql' to merge and eliminate duplicate species rows."
+    fi
+    
+    if [ "$keep_old_list" != "1" ]; then
+
+        # make sure we don't clobber sanity_check.sql even if we forget the -p
+        # option; we want to keep the version from before we did any cleanup:
+        if [ -e sanity_check.sql ]; then
+            backup_number=1
+            while [ -e sanity_check.sql.~${backup_number}~ ]; do
+                backup_number=$((backup_number + 1))
+            done
+            mv sanity_check.sql sanity_check.sql.~${backup_number}~
+        fi
+        
+        # Make a list of the scientificname column value for all groups of
+        # duplicates; each query should yield a non-zero value when we are done.
+        xsltproc -o sanity_check.sql list_species.xsl duplicate_species_local.xml
+    fi
 fi
 
 if [ ! "$query_only" ]; then
