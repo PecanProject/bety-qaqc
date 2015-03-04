@@ -69,7 +69,7 @@ SELECT
              HAVING ARRAY_AGG(DISTINCT ps2.pft_id) @> ARRAY_AGG(DISTINCT ps.pft_id)
                     ))) AS deletion_candidate,
 
-    NOT EXISTS(SELECT 1 FROM species s2 /*LEFT JOIN pfts_species ps2 ON ps2.specie_id = s2.id*/
+    NOT EXISTS(SELECT 1 FROM species s2
     WHERE s2.scientificname = s.scientificname AND s2.id != s.id
     AND
     (s2.genus != '' AND s2.genus != s.genus
