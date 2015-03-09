@@ -1,0 +1,30 @@
+<?xml version = "1.0" encoding="UTF-8"?>
+<query_batch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xmlns="http://www.crossref.org/qschema/2.0"
+  xsi:schemaLocation="http://www.crossref.org/qschema/2.0 http://www.crossref.org/qschema/crossref_query_input2.0.xsd">
+<head>
+   <email_address>test@crossref.org</email_address>
+   <doi_batch_id>test</doi_batch_id>
+</head>
+<body>
+  <query enable-multiple-hits="true"
+            list-components="false"
+            expanded-results="false" key="key">
+    <article_title match="fuzzy">liter decomposition rate and beta glucosidase increase with fungal diversit</article_title>
+    <author search-all-authors="false"></author>
+    <component_number></component_number>
+    <edition_number></edition_number>
+    <institution_name></institution_name>
+    <isbn></isbn>
+    <issn></issn>
+    <volume></volume>
+    <issue></issue>
+    <year></year>
+    <first_page></first_page>
+    <journal_title></journal_title>
+    <proceedings_title></proceedings_title>
+    <series_title></series_title>
+    <volume_title></volume_title>
+    <unstructured_citation></unstructured_citation>
+  </query>
+</body>
+</query_batch>
