@@ -9,6 +9,7 @@ CREATE OR REPLACE FUNCTION update_references(
 DECLARE
   kept_row RECORD;
   elimination_candidate_row RECORD;
+  found_rows_to_eliminate boolean;
   can_delete_row boolean;
   eliminated_site_id int;
   linked_citation_id int;
@@ -16,7 +17,13 @@ DECLARE
 BEGIN
   SELECT * FROM sites WHERE id = kept_site_id INTO kept_row;
 
-  FOR eliminated_row IN SELECT * FROM sites
+  IF kept_row IS NULL THEN
+      RAISE NOTICE 'The site with id = % doesn''t exist.', kept_site_id;
+      EXIT;
+  END IF;
+
+  found_rows_to_eliminate := FALSE;
+  FOR elimination_candidate_row IN SELECT * FROM sites
 
       /* Find rows having the same value for the candidate key (author, year, title) that kept_row has ... */
       WHERE sitename = kept_row.sitename
@@ -26,6 +33,7 @@ BEGIN
             AND id != kept_site_id
             LOOP
 
+            found_rows_to_eliminate := TRUE;
       /* Ensure we aren't throwing away information we don't already have in kept row. */      
             SELECT (elimination_candidate_row.city = '' OR elimination_candidate_row.city = kept_row.city)
             AND (elimination_candidate_row.state = '' OR elimination_candidate_row.state = kept_row.state)
@@ -86,6 +94,11 @@ BEGIN
     DELETE FROM sites WHERE id = eliminated_site_id;
 
     END LOOP;
+
+    IF NOT found_rows_to_eliminate THEN
+    RAISE NOTICE 'There were no site found the are potential duplicates of the site with id = %.  Perhaps you already eliminated them.', kept_site_id;
+    END IF;
+    
   RETURN 'DONE';
 END
 $$ LANGUAGE plpgsql;
