@@ -55,8 +55,8 @@ BEGIN
             CONTINUE;
         END IF;
 
-        RAISE NOTICE 'Eliminating row with id = %', eliminated_site_id;
         eliminated_site_id := elimination_candidate_row.id;
+        RAISE NOTICE 'Eliminating row with id = %', eliminated_site_id;
 
 
         /* Update foreign keys. */
