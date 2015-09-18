@@ -3,7 +3,7 @@
 usage="
 Usage:
     $(basename $0) -u|-h|-i
-    $(basename $0) [-H host] [-U user] [-d database] [-f] [-r <km distance>]
+    $(basename $0) [-H host] [-U user] [-d database] [-p port] [-f] [-r <km distance>]
 "
 
 help="$usage
@@ -13,6 +13,7 @@ help="$usage
     -i            information manual: show complete information about using this script
 
     -H host       run query on host (default: localhost)
+    -p port       PostgreSQL port to connect to (default: 5432)
     -U user       connect to database as user (default: bety)
     -d database   run query against database (default: bety)
 
@@ -39,16 +40,19 @@ EOF
 }
 
 host=localhost
+port=5432
 database=bety
 user=bety
 distance=0
 sql_script=subsidiary_scripts/find_duplicate_sites.sql
 where_clause="sss.sitename != '' AND"
 
-while getopts 'H:d:U:uhir:fs' OPTION
+while getopts 'H:p:d:U:uhir:fs' OPTION
 do
     case $OPTION in
         H) host="$OPTARG"
+            ;;
+        p) port="$OPTARG"
             ;;
         d) database="$OPTARG"
             ;;
@@ -75,4 +79,4 @@ do
     esac
 done
 
-printf "`cat ${sql_script}`" "$where_clause" $distance | psql -d $database -U $user -h $host
+printf "`cat ${sql_script}`" "$where_clause" $distance | psql -d $database -U $user -p $port -h $host
