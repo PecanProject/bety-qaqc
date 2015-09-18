@@ -1,0 +1,19 @@
+Plan for eliminating site duplicates.
+
+1. Run a query to find groups with the same non-empty sitename value.
+
+2. For each group, run a more detailed query to compare other column values and
+numbers of linked associations.
+
+3. Choose a member of the group to keep, and reconcile missing or conflicting
+information with other members of the group.  At the end of this process, each
+column value in each row being eliminated should either be empty or should match
+the value in the row being kept.
+
+4. Run the script to eliminate duplicates and reassign references to the row
+being kept.
+
+5. Repeat steps 1 to 4 using the -r flag in steps 1 and 2 to examine like-named
+sites whose location is not exactly the same.
+
+6. Repeat steps 1 to 5 but including sites with empty sitename value (use the -s flag).
