@@ -15,7 +15,7 @@ FROM
              EXISTS(
                  SELECT 1 FROM sites ss
                      WHERE ss.id!=sss.id
-                         AND ss.sitename = sss.sitename
+                         AND regexp_replace(ss.sitename, ' *-? *duplicate *', '') = regexp_replace(sss.sitename, ' *-? *duplicate *', '')
                          AND st_dwithin(ss.geometry, sss.geometry, %f/111.0)
                  )
      ) AS s
