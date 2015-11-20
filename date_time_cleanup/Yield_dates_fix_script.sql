@@ -37,8 +37,8 @@ UPDATE yields SET date = date_trunc('year', date)::date WHERE dateloc = 8 AND ex
 /* If dateloc is 7, assume entries where day = 1 or day = 15 are OK, but round the date to the nearest representative season date (01-01, 04-01, 07-01, or 10-01) */
 UPDATE yields SET date = date_trunc('quarter', date + interval '46 days')::date WHERE dateloc = 7 AND extract(day FROM date) IN (1, 15);
 
-/* If dateloc is 6, assume entries where day = 1 or day = 15 are OK, but normalize to the first of the month. */
-UPDATE yields SET date = date_trunc('month', date)::date WHERE dateloc = 6 AND extract(day FROM date) IN (1, 15);
+/* If dateloc is 6, assume entries where day = 15 are OK, but normalize to the first of the month. */
+UPDATE yields SET date = date_trunc('month', date)::date WHERE dateloc = 6 AND extract(day FROM date) = 15;
 
 
 
