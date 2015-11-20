@@ -38,7 +38,7 @@ UPDATE yields SET date = date_trunc('year', date)::date WHERE dateloc = 8 AND ex
 UPDATE yields SET date = date_trunc('quarter', date + interval '46 days')::date WHERE dateloc = 7 AND extract(day FROM date) IN (1, 15);
 
 /* If dateloc is 6, assume entries where day = 1 or day = 15 are OK, but normalize to the first of the month. */
-UPDATE yields SET date = date_trunc('month', date)::date WHERE dateloc = 7 AND extract(day FROM date) IN (1, 15);
+UPDATE yields SET date = date_trunc('month', date)::date WHERE dateloc = 6 AND extract(day FROM date) IN (1, 15);
 
 
 
